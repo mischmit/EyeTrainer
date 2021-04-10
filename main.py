@@ -4,6 +4,7 @@ import random
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
+
 class MyGame(arcade.Window):
     """ Main application class. """
 
@@ -41,23 +42,30 @@ class MyGame(arcade.Window):
             self.pressed = True
         elif key == arcade.key.ESCAPE:
             if self.running:
-                self.running = False
+                self.running = False            
+                self.calc_scores()
             else:
                 self.setup()
 
     def draw_current_test(self):
         self.draw_square(self.x, self.y, arcade.color.WHITE)
 
+    def draw_center(self):
+        self.draw_square(0, 0, arcade.color.WHITE)
+
     def draw_score(self):
         for score, q in zip(self.scores, self.all_quadrants):
-            x,y = self.cell_to_pixel(self.cols / 2 * q[1], self.rows / 2 * q[2])
-            arcade.draw_text("{:.2f}%".format(score), x, y, arcade.color.WHITE, 32, align="center", anchor_x="center", anchor_y="center")
+            x, y = self.cell_to_pixel(
+                self.cols / 2 * q[1], self.rows / 2 * q[2])
+            arcade.draw_text("{:.2f}%".format(score), x, y, arcade.color.WHITE,
+                             32, align="center", anchor_x="center", anchor_y="center")
 
     def on_draw(self):
-        """ Render the screen. """
         arcade.start_render()
         if self.running:
-            if self.t < 2/3:
+            if self.t < 1/3:
+                self.draw_center()
+            elif self.t < 2/3:
                 self.draw_current_test()
         else:
             self.draw_score()
@@ -65,34 +73,38 @@ class MyGame(arcade.Window):
     def get_quadrant(self):
         return random.choices(self.all_quadrants, [3, 1, 1, 2])[0]
 
+    def next_test(self):
+        self.q = self.get_quadrant()
+        self.x = random.randrange(1, self.cols) * self.q[1]
+        self.y = random.randrange(1, self.rows) * self.q[2]
+
+    def check_test(self):
+        if self.pressed:
+            self.count_pressed[self.q[0]] += 1
+        self.count_occured[self.q[0]] += 1
+        self.pressed = False
+
+    def calc_scores(self):
+        self.scores = [pressed * 100 / occured if occured > 0 else 0 for pressed,
+                       occured in zip(self.count_pressed, self.count_occured)]
+
     def update(self, delta_time):
-        """ All the logic to move, and the game logic goes here. """
-        
         if self.running:
             self.time_since_start += delta_time
             last_t = self.t
-            self.t = (self.time_since_start % self.cycle_time) / self.cycle_time
-
-            if self.t < 1/3:
-                self.x = 0
-                self.y = 0
+            self.t = (self.time_since_start %
+                      self.cycle_time) / self.cycle_time
             if self.t > 1/3 and last_t < 1/3:
-                self.q = self.get_quadrant()
-                self.x = random.randrange(1, self.cols) * self.q[1]
-                self.y = random.randrange(1, self.rows) * self.q[2]
+                self.next_test()
             if self.t > 2/3 and last_t < 2/3:
-                if self.pressed:
-                    self.count_pressed[self.q[0]] += 1
-                self.count_occured[self.q[0]] += 1
-                self.pressed = False
-        else:
-            self.scores = [pressed * 100 / occured if occured > 0 else 0 for pressed, occured in zip(self.count_pressed, self.count_occured)]
+                self.check_test()
 
 
 def main():
     game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
     game.setup()
     arcade.run()
+
 
 if __name__ == "__main__":
     main()
