@@ -45,16 +45,22 @@ class MyGame(arcade.Window):
             else:
                 self.setup()
 
+    def draw_current_test(self):
+        self.draw_square(self.x, self.y, arcade.color.WHITE)
+
+    def draw_score(self):
+        for score, q in zip(self.scores, self.all_quadrants):
+            x,y = self.cell_to_pixel(self.cols / 2 * q[1], self.rows / 2 * q[2])
+            arcade.draw_text("{:.2f}%".format(score), x, y, arcade.color.WHITE, 32, align="center", anchor_x="center", anchor_y="center")
+
     def on_draw(self):
         """ Render the screen. """
         arcade.start_render()
         if self.running:
             if self.t < 2/3:
-                self.draw_square(self.x, self.y, arcade.color.WHITE)
+                self.draw_current_test()
         else:
-            for score, q in zip(self.scores, self.all_quadrants):
-                x,y = self.cell_to_pixel(self.cols / 2 * q[1], self.rows / 2 * q[2])
-                arcade.draw_text("{:.2f}%".format(score), x, y, arcade.color.WHITE, 32, align="center", anchor_x="center", anchor_y="center")
+            self.draw_score()
 
     def get_quadrant(self):
         return random.choices(self.all_quadrants, [3, 1, 1, 2])[0]
