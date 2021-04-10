@@ -54,8 +54,8 @@ class Level:
         self.tests = []
         self.test_templates = []
         for quadrant, frequency in zip(ALL_QUADRANTS, quadrant_frequency):
-            for x in range(1, cols):
-                for y in range(1, rows):
+            for x in range(1, cols + 1):
+                for y in range(1, rows + 1):
                     template = TestTemplate(x * quadrant[0], y * quadrant[1])
                     self.test_templates.append(template)
                     self.tests += [Test(template)] * frequency
@@ -66,7 +66,7 @@ class Level:
         return self.tests[self.current_test_index]
 
     def cell_to_pixel(self, x, y):
-        i, j = x + self.cols, y + self.rows
+        i, j = x + self.cols, y + self.rows + 1
         w, h = self.get_size()
         return i / (self.cols * 2 + 1) * w, j / (self.rows * 2 + 1) * h
 
@@ -93,11 +93,15 @@ class Level:
         for score, q in zip(self.sum_scores(), ALL_QUADRANTS):
             x, y = self.cell_to_pixel(
                 self.cols / 2 * q[0], self.rows / 2 * q[1])
-            if score[1] + score[2] == 0:
-                scalar = 0
+            played_count = score[1] + score[2]
+            if played_count == 0:
+                hit_ratio = 0
             else:
-                scalar = 100 * score[1] / (score[1] + score[2])
-            arcade.draw_text("{:.2f}%".format(scalar), x, y, arcade.color.WHITE,
+                hit_ratio = 100 * score[1] / played_count
+            arcade.draw_text("Hit {:.2f}%".format(hit_ratio), x, y, arcade.color.WHITE,
+                             32, align="center", anchor_x="center", anchor_y="center")
+            played_ratio = 100 * played_count / score[0]
+            arcade.draw_text("Played {:.2f}%".format(played_ratio), x, y + 100, arcade.color.WHITE,
                              32, align="center", anchor_x="center", anchor_y="center")
 
     def start_next_test(self):

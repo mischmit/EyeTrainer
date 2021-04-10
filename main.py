@@ -12,7 +12,7 @@ class MyGame(arcade.Window):
     """ Main application class. """
 
     def __init__(self, width, height):
-        super().__init__(width, height, "EyeTrainer", False)
+        super().__init__(width, height, "EyeTrainer", True)
         arcade.set_background_color(arcade.color.BLACK)
         self.cycle_time = 5
 
@@ -23,13 +23,12 @@ class MyGame(arcade.Window):
         self.running = True
 
     def on_key_press(self, key, modifiers):
-        if key == arcade.key.SPACE and self.t > 1/3 and self.t < 2/3:
+        if self.running and key == arcade.key.SPACE and self.t > 1/3 and self.t < 2/3:
             self.level.on_press()
         elif key == arcade.key.ESCAPE:
-            if self.running:
-                self.running = False
-            else:
-                self.setup()
+            self.running = not(self.running)
+        elif key == arcade.key.R:
+            self.setup()
 
     def on_draw(self):
         arcade.start_render()
