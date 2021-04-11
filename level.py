@@ -47,10 +47,9 @@ class Test:
 
 
 class Level:
-    def __init__(self, rows, cols, quadrant_frequency, get_size_fun):
+    def __init__(self, rows, cols, quadrant_frequency):
         self.rows = rows
         self.cols = cols
-        self.get_size = get_size_fun
         self.tests = []
         self.test_templates = []
         for quadrant, frequency in zip(ALL_QUADRANTS, quadrant_frequency):
@@ -65,34 +64,34 @@ class Level:
     def current_test(self):
         return self.tests[self.current_test_index]
 
-    def cell_to_pixel(self, x, y):
+    def cell_to_pixel(self, x, y, size):
         i, j = x + self.cols, y + self.rows + 1
-        w, h = self.get_size()
+        w, h = size
         return i / (self.cols * 2 + 1) * w, j / (self.rows * 2 + 1) * h
 
-    def draw_test_template(self, test):
-        self.draw_square(test.x, test.y, arcade.color.WHITE)
+    def draw_test_template(self, test, size):
+        self.draw_square(test.x, test.y, arcade.color.WHITE, size)
 
-    def draw_current_test(self):
-        self.draw_test_template(self.current_test().template)
+    def draw_current_test(self, size):
+        self.draw_test_template(self.current_test().template, size)
 
-    def draw_center(self):
-        self.draw_square(0, 0, arcade.color.WHITE)
+    def draw_center(self, size):
+        self.draw_square(0, 0, arcade.color.WHITE, size)
 
-    def draw_square(self, x, y, color):
-        left, top = self.cell_to_pixel(x, y)
-        right, bottom = self.cell_to_pixel(x + 1, y - 1)
+    def draw_square(self, x, y, color, size):
+        left, top = self.cell_to_pixel(x, y, size)
+        right, bottom = self.cell_to_pixel(x + 1, y - 1, size)
         arcade.draw_lrtb_rectangle_filled(left, right, top, bottom, color)
 
-    def draw_score(self):
+    def draw_score(self, size):
         for t in self.test_templates:
             r = 255 * t.count_missed / t.count_total
             g = 255 * t.count_hit / t.count_total
-            self.draw_square(t.x, t.y, (r, g, 100))
+            self.draw_square(t.x, t.y, (r, g, 100), size)
 
         for score, q in zip(self.sum_scores(), ALL_QUADRANTS):
             x, y = self.cell_to_pixel(
-                self.cols / 2 * q[0], self.rows / 2 * q[1])
+                self.cols / 2 * q[0], self.rows / 2 * q[1], size)
             played_count = score[1] + score[2]
             if played_count == 0:
                 hit_ratio = 0
@@ -101,7 +100,7 @@ class Level:
             arcade.draw_text("Hit {:.2f}%".format(hit_ratio), x, y, arcade.color.WHITE,
                              32, align="center", anchor_x="center", anchor_y="center")
             played_ratio = 100 * played_count / score[0]
-            arcade.draw_text("Played {:.2f}%".format(played_ratio), x, y + 100, arcade.color.WHITE,
+            arcade.draw_text("Completed {:.2f}%".format(played_ratio), x, y - 50, arcade.color.WHITE,
                              32, align="center", anchor_x="center", anchor_y="center")
 
     def start_next_test(self):
