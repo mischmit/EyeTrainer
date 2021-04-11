@@ -57,7 +57,7 @@ class Level:
                 for y in range(1, rows + 1):
                     template = TestTemplate(x * quadrant[0], y * quadrant[1])
                     self.test_templates.append(template)
-                    self.tests += [Test(template)] * frequency
+                    self.tests += [Test(template) for x in range(frequency)]
         random.shuffle(self.tests)
         self.current_test_index = 0
 
@@ -87,11 +87,11 @@ class Level:
         for t in self.test_templates:
             r = 255 * t.count_missed / t.count_total
             g = 255 * t.count_hit / t.count_total
-            self.draw_square(t.x, t.y, (r, g, 100), size)
+            self.draw_square(t.x, t.y, (r, g, 50), size)
 
         for score, q in zip(self.sum_scores(), ALL_QUADRANTS):
             x, y = self.cell_to_pixel(
-                self.cols / 2 * q[0], self.rows / 2 * q[1], size)
+                (self.cols + 1)/ 2 * q[0] + 0.5, (self.rows + 1) / 2 * q[1] - 0.5, size)
             played_count = score[1] + score[2]
             if played_count == 0:
                 hit_ratio = 0
@@ -104,13 +104,17 @@ class Level:
                              32, align="center", anchor_x="center", anchor_y="center")
 
     def start_next_test(self):
-        self.current_test_index += 1
+        if not(self.is_done()):
+            self.current_test_index += 1
 
     def on_press(self):
         self.current_test().press()
 
     def end_test(self):
         self.current_test().done()
+
+    def is_done(self):
+        return self.current_test_index >= len(self.tests) - 1
 
     def sum_scores(self):
         return [self.sum_scores_per_quadrant(q) for q in ALL_QUADRANTS]
